@@ -1,0 +1,12 @@
+:root {
+  --color-bg: #f7f9fc;
+  --color-surface: #ffffff;
+  --color-text: #102449;
+  --color-muted: #73809a;
+  --color-primary: #246bfe;
+  --color-danger: #ff6b4a;
+  --color-success: #2f9e72;
+  --radius-card: 18px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
