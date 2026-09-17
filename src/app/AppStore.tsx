@@ -6,6 +6,7 @@ import {
   type PropsWithChildren,
 } from 'react'
 import { BudgetDatabase } from '../data/db'
+import { seedDefaultProjects } from '../data/defaultProjects'
 import { exportBackup, restoreBackup, type BackupPayloadV1 } from '../data/backup'
 import { getActiveCycle, getTransactionsForCycle } from '../data/repositories'
 import { calculateCycleProjection } from '../domain/budgetEngine'
@@ -67,18 +68,14 @@ export function BudgetAppProvider({
   const [allTransactions, setAllTransactions] = useState<LedgerTransaction[]>([])
 
   const refresh = useCallback(async () => {
-    setLoading(true)
-    try {
-      const snapshot = await readSnapshot(database)
-      setCycle(snapshot.cycle)
-      setCycles(snapshot.cycles)
-      setProjects(snapshot.projects)
-      setPresets(snapshot.presets)
-      setTransactions(snapshot.transactions)
-      setAllTransactions(snapshot.allTransactions)
-    } finally {
-      setLoading(false)
-    }
+    // Keep routes mounted during a mutation: forms, scroll and undo belong to the current page.
+    const snapshot = await readSnapshot(database)
+    setCycle(snapshot.cycle)
+    setCycles(snapshot.cycles)
+    setProjects(snapshot.projects)
+    setPresets(snapshot.presets)
+    setTransactions(snapshot.transactions)
+    setAllTransactions(snapshot.allTransactions)
   }, [database])
 
   useEffect(() => {
@@ -100,7 +97,10 @@ export function BudgetAppProvider({
 
   const createFirstCycle = useCallback(
     async (startDate: DateKey, expectedNextPayDate: DateKey, budgetCents: number) => {
-      await createFirstCycleRecord(database, startDate, expectedNextPayDate, budgetCents)
+      await database.transaction('rw', [database.cycles, database.settings, database.projects], async () => {
+        await createFirstCycleRecord(database, startDate, expectedNextPayDate, budgetCents)
+        await seedDefaultProjects(database)
+      })
       await refresh()
     },
     [database, refresh],

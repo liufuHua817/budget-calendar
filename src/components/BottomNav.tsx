@@ -1,10 +1,10 @@
-import { CalendarDays, History, House, Settings } from 'lucide-react'
+import { ChartNoAxesCombined, ReceiptText, House, Settings } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 const items = [
   { to: '/', label: '首页', icon: House, end: true },
-  { to: '/entry', label: '记账', icon: CalendarDays },
-  { to: '/history', label: '历史', icon: History },
+  { to: '/entry', label: '记账', icon: ReceiptText },
+  { to: '/history', label: '历史', icon: ChartNoAxesCombined },
   { to: '/settings', label: '设置', icon: Settings },
 ]
 

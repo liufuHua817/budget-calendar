@@ -5,6 +5,7 @@ import { formatCents } from '../../domain/money'
 import { useBudgetApp } from '../../app/BudgetAppContext'
 import { EmptyState } from '../../components/EmptyState'
 import { Money } from '../../components/Money'
+import { projectAppearance } from '../../components/projectAppearance'
 
 function shortDate(date: string) {
   return `${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日`
@@ -55,14 +56,14 @@ function CycleReport({ cycle, transactions, today, projects }: {
     <header className="cycle-report-head">
       <div><span>{cycle.status === 'active' ? '当前周期' : '已结束'}</span><h2>{shortDate(cycle.startDate)} – {shortDate(cycle.endDate)}</h2></div>
       <span className={projection.overspendCents ? 'danger-tag' : 'success-tag'}>
-        {projection.overspendCents ? '超支' : '有盈余'}
+        {cycle.status === 'active' ? '进行中' : projection.overspendCents ? '超支' : projection.surplusCents ? '有结余' : '收支持平'}
       </span>
     </header>
     <div className="cycle-totals">
       <div><span>周期预算</span><Money cents={cycle.totalBudgetCents} /></div>
       <div><span>预算消费</span><Money cents={projection.budgetSpentCents} /></div>
       {projection.budgetSpentCents > 0 && <div className={projection.overspendCents ? 'danger-total' : 'success-total'}>
-        <span>{projection.overspendCents ? '周期超支' : '周期盈余'}</span>
+        <span>{projection.overspendCents ? '周期超支' : cycle.status === 'active' ? '剩余预算' : '周期结余'}</span>
         <Money cents={projection.overspendCents || projection.surplusCents} />
       </div>}
       <div><span>固定支出</span><small>不占预算</small><Money cents={projection.fixedSpentCents} /></div>
@@ -80,11 +81,11 @@ function CycleReport({ cycle, transactions, today, projects }: {
       {categories.length ? <div className="category-chart">
         <svg viewBox="0 0 42 42" role="img" aria-label="预算消费项目占比">
           <circle className="donut-track" cx="21" cy="21" r="15.9155" fill="transparent" strokeWidth="7" />
-          {segments.map(({ project, percent, offset }) => <circle key={project.id} cx="21" cy="21" r="15.9155" fill="transparent" stroke={project.color}
+          {segments.map(({ project, percent, offset }) => <circle key={project.id} cx="21" cy="21" r="15.9155" fill="transparent" stroke={projectAppearance(project).color}
             strokeWidth="7" strokeDasharray={`${percent} ${100 - percent}`} strokeDashoffset={-offset} />)}
         </svg>
         <div className="category-legend">{categories.map(({ project, amount }) => <div key={project.id}>
-          <i style={{ background: project.color }} /><span>{project.name}</span><strong>{formatCents(amount)}</strong>
+          <i style={{ background: projectAppearance(project).color }} /><span>{project.name}</span><strong>{formatCents(amount)}</strong>
         </div>)}</div>
       </div> : <EmptyState>本周期还没有预算消费</EmptyState>}
     </section>

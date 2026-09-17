@@ -33,7 +33,9 @@ test('creates a custom project with multiple preset amounts', async () => {
   expect(await screen.findByRole('heading', { name: '设置' })).toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: '添加项目' }))
   await user.type(screen.getByLabelText('项目名称'), '地铁')
-  await user.type(screen.getByLabelText('预设金额'), '2.7, 3.6')
+  await user.type(screen.getByLabelText('预设金额'), '2.7')
+  await user.click(screen.getByRole('button', { name: '添加金额' }))
+  await user.type(screen.getByLabelText('预设金额'), '3.6')
   await user.click(screen.getByRole('button', { name: '保存项目' }))
 
   expect(await screen.findByText('地铁')).toBeInTheDocument()
@@ -56,6 +58,11 @@ test('edits the expected payday and opens an early new-cycle form', async () => 
 
   await user.click(await screen.findByRole('button', { name: '工资已到账，开始新周期' }))
   expect(screen.getByRole('heading', { name: '开始新发薪周期' })).toBeInTheDocument()
+  await user.clear(screen.getByLabelText('下次预计发薪日'))
+  await user.type(screen.getByLabelText('下次预计发薪日'), '2026-10-20')
+  await user.click(screen.getByRole('button', { name: '确认开始新周期' }))
+  await screen.findByRole('heading', { name: '设置' })
+  expect(screen.getByLabelText('预计发薪日')).toHaveValue('2026-10-20')
 })
 
 test('previews a valid backup and warns that exports are unencrypted', async () => {

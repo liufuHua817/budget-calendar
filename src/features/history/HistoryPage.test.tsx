@@ -37,6 +37,8 @@ test('shows independent cycle totals, five actual weeks, and project totals', as
   </BudgetAppProvider>)
 
   expect(await screen.findByRole('heading', { name: '周期统计' })).toBeInTheDocument()
+  expect(screen.getByText('剩余预算')).toBeInTheDocument()
+  expect(screen.queryByText('周期盈余')).not.toBeInTheDocument()
   expect(screen.getByText('¥1,500.00')).toBeInTheDocument()
   expect(screen.getByText('¥173.60')).toBeInTheDocument()
   expect(screen.getByText('¥1,326.40')).toBeInTheDocument()

@@ -49,6 +49,11 @@ describe('first-run setup', () => {
     await user.click(screen.getByRole('button', { name: '开始记账' }))
 
     expect(await screen.findByRole('heading', { name: '预算日历' })).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: '记账' }))
+    expect(await screen.findByRole('button', { name: '餐饮' })).toBeInTheDocument()
+    await user.type(screen.getByLabelText('金额'), '20')
+    await user.click(screen.getByRole('button', { name: '保存账目' }))
+    await waitFor(async () => expect(await database.transactions.count()).toBe(1))
     await waitFor(async () => {
       expect((await database.cycles.toArray())[0]).toMatchObject({
         startDate: '2026-09-16',

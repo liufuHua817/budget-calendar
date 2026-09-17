@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { useBudgetApp } from '../../app/BudgetAppContext'
 import { EmptyState } from '../../components/EmptyState'
 import { Money } from '../../components/Money'
+import { ProjectBadge } from '../../components/ProjectBadge'
 import type { DateKey } from '../../domain/dateKey'
 import type { ExpenseType, LedgerTransaction, Project } from '../../domain/models'
 
@@ -22,7 +23,7 @@ function EntryGroup({ type, entries, projects, onRemove }: {
     {entries.length ? <div className="day-entry-list">{entries.map((entry) => {
       const project = projects.find((item) => item.id === entry.projectId)
       return <article key={entry.id}>
-        <span className="project-badge" style={{ backgroundColor: `${project?.color ?? '#73809a'}18`, color: project?.color }}>{project?.name.slice(0, 1) ?? '?'}</span>
+        <ProjectBadge project={project} />
         <div><strong>{project?.name ?? '已停用项目'}</strong>{entry.note && <small>{entry.note}</small>}</div>
         <Money cents={-entry.amountCents} />
         <div className="entry-actions"><Link to={`/entry?transaction=${entry.id}`} aria-label={`编辑${project?.name ?? '账目'}`}><Pencil size={16} /></Link>

@@ -5,6 +5,7 @@ import { useBudgetApp } from '../../app/BudgetAppContext'
 import type { DateKey } from '../../domain/dateKey'
 import type { ExpenseType } from '../../domain/models'
 import { formatCents, parseYuanToCents } from '../../domain/money'
+import { ProjectBadge } from '../../components/ProjectBadge'
 
 export function EntryPage() {
   const app = useBudgetApp()
@@ -82,22 +83,22 @@ export function EntryPage() {
       </div>
 
       <section className="entry-section">
-        <h2>选择项目</h2>
+        <h2>消费类别</h2>
         {visibleProjects.length ? <div className="project-picker">{visibleProjects.map((project) =>
           <button key={project.id} type="button" className={projectId === project.id ? 'selected' : ''} aria-label={project.name}
             aria-pressed={projectId === project.id} onClick={() => setProjectId(project.id)}>
-            <span style={{ backgroundColor: `${project.color}18`, color: project.color }}>{project.name.slice(0, 1)}</span>{project.name}
-          </button>)}</div> : <p className="empty-state">此类型还没有项目，请先到设置添加。</p>}
-      </section>
+            <ProjectBadge project={project} />{project.name}
+          </button>)}</div> : <p className="empty-state">此类型还没有类别。<Link to="/settings#projects">添加消费类别</Link></p>}
 
-      {app.presets.some((preset) => preset.projectId === projectId) && <section className="entry-section">
-        <h2>常用金额</h2>
+      {app.presets.some((preset) => preset.projectId === projectId) && <div className="entry-presets">
+        <h3>常用金额</h3>
         <div className="preset-row">{app.presets.filter((preset) => preset.projectId === projectId).map((preset) => {
           const project = app.projects.find((item) => item.id === preset.projectId)
-          return <button key={preset.id} type="button" aria-label={`${project?.name ?? ''} ${formatCents(preset.amountCents)}`}
+          return <button key={preset.id} type="button" aria-pressed={Number(amount) * 100 === preset.amountCents} aria-label={`${project?.name ?? ''} ${formatCents(preset.amountCents)}`}
             onClick={() => setAmount((preset.amountCents / 100).toFixed(2))}>{formatCents(preset.amountCents)}</button>
         })}</div>
-      </section>}
+      </div>}
+      </section>
 
       <div className="entry-fields">
         <label><span>日期</span><input type="date" value={date} min={cycle.startDate} max={cycle.endDate}
@@ -106,7 +107,7 @@ export function EntryPage() {
       </div>
       {expenseType === 'fixed' && <p className="fixed-note">固定支出会被统计，但不会扣减可花预算。</p>}
       {error && <p className="form-error" role="alert">{error}</p>}
-      <button className="primary-button entry-submit" disabled={saving} type="submit">{saving ? '正在保存…' : '保存账目'}</button>
+      <div className="entry-submit"><button className="primary-button" disabled={saving} type="submit">{saving ? '正在保存…' : '保存账目'}</button></div>
     </form>
   </main>
 }

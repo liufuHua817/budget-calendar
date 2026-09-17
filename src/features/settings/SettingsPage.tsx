@@ -7,6 +7,7 @@ import type { DateKey } from '../../domain/dateKey'
 import type { ExpenseType, Project } from '../../domain/models'
 import { formatCents, parseYuanToCents } from '../../domain/money'
 import { PaydayPrompt } from '../cycle/PaydayPrompt'
+import { ProjectBadge } from '../../components/ProjectBadge'
 
 function shortDate(date: string) {
   return `${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日`
@@ -30,7 +31,10 @@ function downloadJson(payload: BackupPayloadV1, prefix?: string) {
 
 export function SettingsPage() {
   const app = useBudgetApp()
-  const [expectedDate, setExpectedDate] = useState<DateKey>(app.cycle?.expectedNextPayDate ?? app.today)
+  const paydaySource = `${app.cycle?.id}:${app.cycle?.expectedNextPayDate}`
+  const [paydayDraft, setPaydayDraft] = useState<{ source: string; value: DateKey }>()
+  const expectedDate = paydayDraft?.source === paydaySource
+    ? paydayDraft.value : app.cycle?.expectedNextPayDate ?? app.today
   const [earlyCycle, setEarlyCycle] = useState(false)
   const [editing, setEditing] = useState<Project | 'new'>()
   const [preview, setPreview] = useState<BackupPayloadV1>()
@@ -87,20 +91,20 @@ export function SettingsPage() {
       <p className="cycle-range">{shortDate(app.cycle.startDate)} – {shortDate(app.cycle.endDate)}</p>
       <form className="inline-date-form" onSubmit={savePayday}>
         <label><span>预计发薪日</span><input type="date" value={expectedDate}
-          onChange={(event) => setExpectedDate(event.target.value as DateKey)} /></label>
+          onChange={(event) => setPaydayDraft({ source: paydaySource, value: event.target.value as DateKey })} /></label>
         <button type="submit">保存发薪日</button>
       </form>
       <button className="outline-button full-button" type="button" onClick={() => setEarlyCycle(true)}>工资已到账，开始新周期</button>
     </section>
 
-    <section className="settings-card">
+    <section className="settings-card" id="projects">
       <div className="settings-title"><div><span>快速记账</span><h2>自定义项目</h2></div>
         <button type="button" onClick={() => setEditing('new')}><Plus size={17} />添加项目</button></div>
       <div className="project-settings-list">{app.projects.filter((project) => project.isActive).map((project, index, list) => {
         const amounts = app.presets.filter((preset) => preset.projectId === project.id)
           .map((preset) => formatCents(preset.amountCents)).join(' · ')
         return <article key={project.id}>
-          <span className="project-badge" style={{ backgroundColor: `${project.color}18`, color: project.color }}>{project.name.slice(0, 1)}</span>
+          <ProjectBadge project={project} />
           <div><strong>{project.name}</strong><small>{project.expenseType === 'fixed' ? '固定支出' : '预算消费'}{amounts ? ` · ${amounts}` : ''}</small></div>
           <div className="project-row-actions">
             <button disabled={index === 0} aria-label={`上移${project.name}`} onClick={() => void app.moveProject(project.id, -1)}><ArrowUp size={15} /></button>
@@ -110,7 +114,7 @@ export function SettingsPage() {
           </div>
         </article>
       })}</div>
-      {editing && <ProjectForm project={editing === 'new' ? undefined : editing} onCancel={() => setEditing(undefined)}
+      {editing && <ProjectForm key={editing === 'new' ? 'new' : editing.id} project={editing === 'new' ? undefined : editing} onCancel={() => setEditing(undefined)}
         onSave={async (input) => { await app.saveProject(input); setEditing(undefined) }}
         presetAmounts={editing === 'new' ? [] : app.presets.filter((preset) => preset.projectId === editing.id).map((preset) => preset.amountCents)} />}
     </section>
@@ -146,15 +150,39 @@ function ProjectForm({ project, presetAmounts, onSave, onCancel }: {
 }) {
   const [name, setName] = useState(project?.name ?? '')
   const [expenseType, setExpenseType] = useState<ExpenseType>(project?.expenseType ?? 'budget')
-  const [amounts, setAmounts] = useState(presetAmounts.map((amount) => amount / 100).join(', '))
+  const [amounts, setAmounts] = useState(presetAmounts)
+  const [pendingAmount, setPendingAmount] = useState('')
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  function collectAmounts() {
+    if (!pendingAmount.trim()) return amounts
+    try {
+      return [...new Set([...amounts, parseYuanToCents(pendingAmount.trim())])]
+    } catch {
+      throw new Error('请输入大于 0 的金额，最多两位小数')
+    }
+  }
+  function addAmount() {
+    try {
+      setAmounts(collectAmounts())
+      setPendingAmount('')
+      setError('')
+    } catch (cause) {
+      setError((cause as Error).message)
+    }
+  }
   async function submit(event: FormEvent) {
     event.preventDefault()
+    if (saving) return
     try {
-      const presetAmountsCents = amounts.trim() ? amounts.split(/[,，]/).map((value) => parseYuanToCents(value.trim())) : []
+      const presetAmountsCents = collectAmounts()
+      setError('')
+      setSaving(true)
       await onSave({ id: project?.id, name, icon: project?.icon ?? 'circle', color: project?.color ?? '#246bfe', expenseType, presetAmountsCents })
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '保存失败')
+    } finally {
+      setSaving(false)
     }
   }
   return <form className="project-form" onSubmit={submit}>
@@ -162,8 +190,11 @@ function ProjectForm({ project, presetAmounts, onSave, onCancel }: {
     <label><span>项目名称</span><input value={name} onChange={(event) => setName(event.target.value)} /></label>
     <div className="segment-control"><button type="button" aria-pressed={expenseType === 'budget'} onClick={() => setExpenseType('budget')}>预算消费</button>
       <button type="button" aria-pressed={expenseType === 'fixed'} onClick={() => setExpenseType('fixed')}>固定支出</button></div>
-    <label><span>预设金额</span><input value={amounts} onChange={(event) => setAmounts(event.target.value)} placeholder="例如 2.7, 3.6" inputMode="decimal" /></label>
-    <p>可输入多个金额，用逗号分隔。</p>{error && <p className="form-error" role="alert">{error}</p>}
-    <div><button className="secondary-button" type="button" onClick={onCancel}>取消</button><button className="primary-button" type="submit">保存项目</button></div>
+    <div className="preset-editor"><label><span>预设金额</span><input value={pendingAmount} onChange={(event) => setPendingAmount(event.target.value)} placeholder="例如 2.7" inputMode="decimal" /></label>
+      <button className="outline-button" type="button" onClick={addAmount}>添加金额</button></div>
+    {amounts.length > 0 && <div className="preset-chips">{amounts.map((amount) => <button type="button" key={amount}
+      aria-label={`删除金额 ${formatCents(amount)}`} onClick={() => setAmounts(amounts.filter((value) => value !== amount))}>{formatCents(amount)} <span aria-hidden="true">×</span></button>)}</div>}
+    <p>可添加多个常用金额，点击金额标签移除。</p>{error && <p className="form-error" role="alert">{error}</p>}
+    <div><button className="secondary-button" type="button" disabled={saving} onClick={onCancel}>取消</button><button className="primary-button" type="submit" disabled={saving}>{saving ? '保存中…' : '保存项目'}</button></div>
   </form>
 }
