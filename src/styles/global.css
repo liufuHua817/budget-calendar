@@ -54,6 +54,10 @@ svg { flex-shrink: 0; }
 .quick-grid strong { font-size: 13px; font-weight: 650; max-width: 100%; overflow-wrap: anywhere; }
 .quick-grid small { font-size: 11px; color: var(--color-muted); }
 .quick-grid .quick-more { background: #eeede7; font-size: 13px; }
+.quick-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: 12px; color: var(--color-muted); }
+.quick-footer a { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; text-decoration: none; font-weight: 600; }
+.entry-time { color: var(--color-muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.recording-hint { margin: 10px 0 0; color: var(--color-muted); font-size: 12px; line-height: 1.6; }
 .quick-more .project-badge { background: transparent; color: var(--color-muted); }
 .quick-empty { display: grid; justify-items: start; padding: 20px; border: 1px dashed #cbd4c8; border-radius: 16px; color: var(--color-muted); }
 .quick-empty p { font-size: 14px; line-height: 1.6; margin: 10px 0; }
@@ -205,9 +209,11 @@ svg { flex-shrink: 0; }
 .settings-title > button { display: flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 10px; border-radius: 11px; background: var(--color-positive-bg); color: var(--color-primary); font-size: 12px; font-weight: 600; }
 .cycle-range { font-size: 21px; font-weight: 650; margin: 0 0 18px; }
 .inline-date-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
-.inline-date-form label { display: grid; gap: 7px; color: var(--color-muted); font-size: 12px; }
-.inline-date-form input { width: 100%; min-height: 46px; padding: 0 8px; border: 1px solid var(--color-line); border-radius: 10px; color: var(--color-text); background: var(--color-field); }
-.inline-date-form button { min-height: 46px; padding: 0 10px; border-radius: 10px; background: var(--color-primary); color: white; font-size: 12px; }
+.inline-date-form label { display: grid; min-width: 0; gap: 7px; color: var(--color-muted); font-size: 12px; }
+.inline-date-form input { display: block; appearance: none; -webkit-appearance: none; width: 100%; min-width: 0; max-width: 100%; height: 48px; min-height: 48px; margin: 0; padding: 0 10px; border: 1px solid var(--color-line); border-radius: 10px; color: var(--color-text); background: var(--color-field); font-size: 16px; }
+.inline-date-form input::-webkit-date-and-time-value { min-height: 1em; text-align: left; }
+.inline-date-form input::-webkit-datetime-edit { padding: 0; }
+.inline-date-form button { display: flex; align-items: center; justify-content: center; align-self: end; height: 48px; min-height: 48px; margin: 0; padding: 0 12px; border-radius: 10px; background: var(--color-primary); color: white; font-size: 13px; white-space: nowrap; }
 .outline-button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 10px 12px; border: 1px solid #dbe0d5; border-radius: 11px; background: var(--color-surface); color: var(--color-primary); font-size: 14px; font-weight: 550; }
 .full-button { width: 100%; margin-top: 12px; }
 .project-settings-list article { display: grid; grid-template-columns: 40px 1fr; align-items: center; gap: 10px; padding: 12px 0; }
@@ -216,7 +222,7 @@ svg { flex-shrink: 0; }
 .project-settings-list small { color: var(--color-muted); font-size: 12px; overflow-wrap: anywhere; }
 .project-row-actions { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
 .project-row-actions button { min-height: 44px; min-width: 44px; display: grid; place-items: center; border-radius: 10px; padding: 0 8px; background: var(--color-field); color: var(--color-muted); font-size: 12px; }
-.project-form { display: grid; gap: 14px; padding: 15px; margin-top: 12px; border: 1px solid #d6dfcf; border-radius: 14px; background: #f4f5ed; }
+.project-form { display: grid; gap: 14px; padding: 15px; margin-top: 12px; border: 1px solid #d6dfcf; border-radius: 14px; background: #f4f5ed; scroll-margin-top: 20px; }
 .project-form h3 { margin: 0; font-size: 16px; }
 .project-form label { display: grid; gap: 7px; font-size: 13px; }
 .project-form input { width: 100%; min-height: 46px; padding: 0 10px; border: 1px solid var(--color-line); border-radius: 10px; background: var(--color-surface); color: var(--color-text); }

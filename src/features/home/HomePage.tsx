@@ -7,6 +7,7 @@ import { Money } from '../../components/Money'
 import { ProjectBadge } from '../../components/ProjectBadge'
 import { projectAppearance } from '../../components/projectAppearance'
 import { ToastUndo } from '../../components/ToastUndo'
+import { EntryTime } from '../../components/EntryTime'
 import { daysBetween } from '../../domain/dateKey'
 import { formatCents } from '../../domain/money'
 import { BudgetCalendar } from './BudgetCalendar'
@@ -78,6 +79,8 @@ export function HomePage() {
           <span>{expanded ? '收起' : '全部'}</span><small>共 {quickPresets.length} 项</small>
         </button>}
       </div> : <div className="quick-empty"><CalendarDays size={24} strokeWidth={1.6} /><p>把常花的金额放在这里，下次一点就记。</p><Link to="/settings#projects">设置常用金额 <ChevronRight size={16} /></Link></div>}
+      <div className="quick-footer"><span>{quickPresets.length ? `已设置 ${quickPresets.length} 个快捷金额` : '按自己的习惯添加'}</span>
+        <Link to="/settings?addProject=1#project-form"><Plus size={16} />添加快捷项</Link></div>
       {error && <p className="form-error" role="alert">{error}</p>}
     </section>
     <section className="home-section calendar-section"><BudgetCalendar key={app.cycle.id} projection={app.projection} today={app.today} /></section>
@@ -86,7 +89,7 @@ export function HomePage() {
       {todayEntries.length ? <div className="today-list">{todayEntries.slice(0, 3).map((entry) => {
         const project = projectMap.get(entry.projectId)
         return <Link key={entry.id} to={`/entry?transaction=${entry.id}`}><ProjectBadge project={project} />
-          <span><strong>{project?.name ?? '已停用项目'}</strong><small>{entry.expenseType === 'fixed' ? '固定支出 · 不占预算' : '预算消费'}</small></span><Money cents={-entry.amountCents} /></Link>
+          <span><strong>{project?.name ?? '已停用项目'}</strong><small>{entry.expenseType === 'fixed' ? '固定支出 · 不占预算' : '预算消费'}</small><EntryTime entry={entry} /></span><Money cents={-entry.amountCents} /></Link>
       })}</div> : <EmptyState>今天还没有账目。<Link to="/entry">记下第一笔</Link></EmptyState>}
     </section>
     {undoEntry && <ToastUndo key={undoEntry.id} message={undoEntry.label} busy={busy} onUndo={undo} onExpire={clearUndo} />}

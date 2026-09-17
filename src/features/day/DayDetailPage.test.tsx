@@ -58,3 +58,13 @@ test('deletes an entry only after confirmation', async () => {
   expect(window.confirm).toHaveBeenCalledWith('确定删除这笔账目吗？')
   await waitFor(async () => expect(await database.transactions.get('food-entry')).toBeUndefined())
 })
+
+test('distinguishes backfilled recording date from the expense date', async () => {
+  const database = await setup()
+  await database.transactions.update('food-entry', { createdAt: new Date(2026, 8, 19, 8, 5).toISOString() })
+  render(<BudgetAppProvider database={database} today={() => '2026-09-19'}>
+    <MemoryRouter initialEntries={['/day/2026-09-18']}><AppRoutes /></MemoryRouter>
+  </BudgetAppProvider>)
+  expect(await screen.findByText('录入于 2026年9月19日 08:05')).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: '9月18日' })).toBeInTheDocument()
+})

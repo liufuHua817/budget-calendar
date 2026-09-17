@@ -4,6 +4,7 @@ import { useBudgetApp } from '../../app/BudgetAppContext'
 import { EmptyState } from '../../components/EmptyState'
 import { Money } from '../../components/Money'
 import { ProjectBadge } from '../../components/ProjectBadge'
+import { EntryTime } from '../../components/EntryTime'
 import type { DateKey } from '../../domain/dateKey'
 import type { ExpenseType, LedgerTransaction, Project } from '../../domain/models'
 
@@ -24,7 +25,7 @@ function EntryGroup({ type, entries, projects, onRemove }: {
       const project = projects.find((item) => item.id === entry.projectId)
       return <article key={entry.id}>
         <ProjectBadge project={project} />
-        <div><strong>{project?.name ?? '已停用项目'}</strong>{entry.note && <small>{entry.note}</small>}</div>
+        <div><strong>{project?.name ?? '已停用项目'}</strong><EntryTime entry={entry} />{entry.note && <small>{entry.note}</small>}</div>
         <Money cents={-entry.amountCents} />
         <div className="entry-actions"><Link to={`/entry?transaction=${entry.id}`} aria-label={`编辑${project?.name ?? '账目'}`}><Pencil size={16} /></Link>
           <button type="button" aria-label={`删除${project?.name ?? '账目'}`} onClick={() => void onRemove(entry.id)}><Trash2 size={16} /></button></div>

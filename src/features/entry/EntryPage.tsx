@@ -6,6 +6,7 @@ import type { DateKey } from '../../domain/dateKey'
 import type { ExpenseType } from '../../domain/models'
 import { formatCents, parseYuanToCents } from '../../domain/money'
 import { ProjectBadge } from '../../components/ProjectBadge'
+import { EntryTime } from '../../components/EntryTime'
 
 export function EntryPage() {
   const app = useBudgetApp()
@@ -105,6 +106,7 @@ export function EntryPage() {
           onChange={(event) => setDate(event.target.value as DateKey)} /></label>
         <label><span>备注</span><input value={note} onChange={(event) => setNote(event.target.value)} placeholder="可选" /></label>
       </div>
+      <p className="recording-hint">{existing ? <><EntryTime entry={existing} /> · 编辑不会改变原始记账时间</> : '保存时自动记录当前时间，无需手动填写。补记仅改变消费日期。'}</p>
       {expenseType === 'fixed' && <p className="fixed-note">固定支出会被统计，但不会扣减可花预算。</p>}
       {error && <p className="form-error" role="alert">{error}</p>}
       <div className="entry-submit"><button className="primary-button" disabled={saving} type="submit">{saving ? '正在保存…' : '保存账目'}</button></div>

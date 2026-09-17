@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 import { BudgetDatabase } from '../data/db'
 import type { Project } from '../domain/models'
 import { createFirstCycle } from './cycleService'
@@ -35,10 +35,28 @@ async function seed(database: BudgetDatabase) {
 }
 
 afterEach(async () => {
+  vi.useRealTimers()
   await Promise.all(databases.splice(0).map((database) => database.delete()))
 })
 
 describe('transaction service', () => {
+  test('records the save time automatically and preserves it when an entry is edited', async () => {
+    const database = createDatabase()
+    const { cycle, project } = await seed(database)
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-09-18T10:35:00Z'))
+    const entry = await recordTransaction(database, {
+      cycleId: cycle.id, projectId: project.id, amountCents: 360,
+      localDate: '2026-09-16', note: '补记',
+    })
+    expect(entry.createdAt).toBe('2026-09-18T10:35:00.000Z')
+    vi.setSystemTime(new Date('2026-09-19T01:00:00Z'))
+    await updateTransaction(database, entry.id, { amountCents: 270 })
+    expect(await database.transactions.get(entry.id)).toMatchObject({
+      createdAt: '2026-09-18T10:35:00.000Z', updatedAt: '2026-09-19T01:00:00.000Z', localDate: '2026-09-16',
+    })
+  })
+
   test.each([0, -1, 10.5])('rejects invalid integer-cent amount %s', async (amountCents) => {
     const database = createDatabase()
     const { cycle, project } = await seed(database)

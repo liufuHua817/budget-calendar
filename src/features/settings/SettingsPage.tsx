@@ -8,6 +8,7 @@ import type { ExpenseType, Project } from '../../domain/models'
 import { formatCents, parseYuanToCents } from '../../domain/money'
 import { PaydayPrompt } from '../cycle/PaydayPrompt'
 import { ProjectBadge } from '../../components/ProjectBadge'
+import { useSearchParams } from 'react-router-dom'
 
 function shortDate(date: string) {
   return `${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日`
@@ -31,12 +32,13 @@ function downloadJson(payload: BackupPayloadV1, prefix?: string) {
 
 export function SettingsPage() {
   const app = useBudgetApp()
+  const [searchParams] = useSearchParams()
   const paydaySource = `${app.cycle?.id}:${app.cycle?.expectedNextPayDate}`
   const [paydayDraft, setPaydayDraft] = useState<{ source: string; value: DateKey }>()
   const expectedDate = paydayDraft?.source === paydaySource
     ? paydayDraft.value : app.cycle?.expectedNextPayDate ?? app.today
   const [earlyCycle, setEarlyCycle] = useState(false)
-  const [editing, setEditing] = useState<Project | 'new'>()
+  const [editing, setEditing] = useState<Project | 'new' | undefined>(() => searchParams.get('addProject') === '1' ? 'new' : undefined)
   const [preview, setPreview] = useState<BackupPayloadV1>()
   const [message, setMessage] = useState('')
   if (!app.cycle) return null
@@ -185,7 +187,7 @@ function ProjectForm({ project, presetAmounts, onSave, onCancel }: {
       setSaving(false)
     }
   }
-  return <form className="project-form" onSubmit={submit}>
+  return <form className="project-form" id="project-form" onSubmit={submit}>
     <h3>{project ? '编辑项目' : '添加项目'}</h3>
     <label><span>项目名称</span><input value={name} onChange={(event) => setName(event.target.value)} /></label>
     <div className="segment-control"><button type="button" aria-pressed={expenseType === 'budget'} onClick={() => setExpenseType('budget')}>预算消费</button>

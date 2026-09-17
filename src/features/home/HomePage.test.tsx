@@ -64,6 +64,35 @@ afterEach(async () => {
 })
 
 describe('hybrid home', () => {
+  test('lets a user add a fifth shortcut directly from home without changing existing presets', async () => {
+    const database = createDatabase()
+    await createFirstCycle(database, '2026-09-16', '2026-10-16', 150_000)
+    await database.projects.add(project)
+    await database.projectPresets.bulkAdd([100, 200, 300, 400].map((amountCents, i) => ({
+      id: `preset-${i}`, projectId: project.id, amountCents, sortOrder: i,
+    })))
+    renderHome(database)
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('link', { name: '添加快捷项' }))
+    expect(screen.getByRole('heading', { name: '添加项目' })).toBeInTheDocument()
+    await user.type(screen.getByLabelText('项目名称'), '早餐')
+    await user.type(screen.getByLabelText('预设金额'), '8')
+    await user.click(screen.getByRole('button', { name: '保存项目' }))
+    await screen.findByText('早餐')
+    await user.click(screen.getByRole('link', { name: '首页' }))
+    expect(await screen.findByRole('button', { name: '早餐 ¥8.00' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '地铁 ¥4.00' })).toBeInTheDocument()
+    expect(await database.projectPresets.count()).toBe(5)
+  })
+
+  test('shows the original recording time on today entries', async () => {
+    const database = createDatabase()
+    await seedThirtyDayCycle(database)
+    await database.transactions.update('entry-2', { createdAt: new Date(2026, 8, 18, 18, 35).toISOString() })
+    renderHome(database)
+    expect(await screen.findByText('记录于 18:35')).toBeInTheDocument()
+  })
+
   test('shows the exact daily summary and every day in a variable cycle', async () => {
     const database = createDatabase()
     await seedThirtyDayCycle(database)
